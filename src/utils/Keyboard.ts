@@ -94,14 +94,14 @@ export default class Keyboard {
         
         window.addEventListener('keydown', (evt) => {
             // Use keyCode instead of key for numeric compatibility
-            let key = this.keys[evt.keyCode as KeyCode];
+            let key = this.keys[evt.keyCode as unknown as KeyCode];
             if (key) {
                 key.onPress();
             }
         });
         window.addEventListener('keyup', (evt) => {
             // Use keyCode instead of key for numeric compatibility
-            let key = this.keys[evt.keyCode as KeyCode];
+            let key = this.keys[evt.keyCode as unknown as KeyCode];
             if (key) {
                 key.onRelease();
             }

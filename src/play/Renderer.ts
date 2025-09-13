@@ -34,9 +34,7 @@ export default class Renderer extends PIXI.Container {
         this.blockSize = blockSize;
         
         // Load textures from the loaded sprite sheet
-        this.textures = PIXI.Assets.get('blocks')?.textures || {};
-        console.log('Renderer textures loaded:', this.textures);
-        
+        this.textures = PIXI.Assets.get('blocks')?.textures || {};        
         this.sprites = [];
         
         for (let i = 0; i < this.rows; ++i) {

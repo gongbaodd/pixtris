@@ -20,9 +20,7 @@ async function setup(): Promise<void> {
 
   // Load the assets
   await Assets.loadBundle('gameBundle');
-  
-  // Verify textures are loaded
-  console.log('Loaded textures:', Assets.get('blocks')?.textures);
+
   let game = new Game(app);
   game.run();
 }

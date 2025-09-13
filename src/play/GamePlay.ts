@@ -118,7 +118,6 @@ export default class GamePlay extends State {
      */
     lockTetromino(): void {
         if (!this.tetromino || !this.board) return;
-        
         let fullRows = this.board.setAll(this.tetromino.absolutePos(), this.tetromino.color);
         this.tetromino = null;
         
