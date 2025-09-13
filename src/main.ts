@@ -14,9 +14,15 @@ async function setup(): Promise<void> {
     height: config.display.height
   });
   document.body.appendChild(app.canvas);
+  Assets.addBundle('gameBundle', {
+    blocks: 'sprites.json'
+  });
 
-  await Assets.load('blocks');
-  await Assets.load('sprites.json');
+  // Load the assets
+  await Assets.loadBundle('gameBundle');
+  
+  // Verify textures are loaded
+  console.log('Loaded textures:', Assets.get('blocks')?.textures);
   let game = new Game(app);
   game.run();
 }

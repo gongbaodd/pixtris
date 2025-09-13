@@ -35,10 +35,10 @@ export default class Game {
      * start game, execute after all assets are loaded
      */
     run() {
-        // Note: This assumes textures are loaded via PIXI.Assets or similar
-        // You may need to adjust this based on your actual texture loading setup
+        // Create background using the background texture from the sprite sheet
+        const backgroundTexture = PIXI.Assets.get('blocks')?.textures?.['background'];
         let background = new TilingSprite({
-            texture: PIXI.Texture.EMPTY,
+            texture: backgroundTexture || PIXI.Texture.EMPTY,
             width: this.app.renderer.width,
             height: this.app.renderer.height,
         })
