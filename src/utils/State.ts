@@ -13,9 +13,9 @@ export default class State extends Container {
         this.visible = false;
     }
 
-    enter(opts?: any): void {}
+    enter(): void {}
 
-    exit(opts?: any): void {}
+    exit(): void {}
 
-    update(dt?: number): void {}
+    update(): void {}
 }

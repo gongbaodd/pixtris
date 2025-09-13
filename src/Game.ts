@@ -57,7 +57,7 @@ export default class Game {
         this.setState('menu');
         
         // start the updates
-        this.app.ticker.add((ticker) => this.update(ticker.deltaTime));
+        this.app.ticker.add(() => this.update());
     }
     
     /**
@@ -69,14 +69,10 @@ export default class Game {
         this.gameStates[stateName] = state;
         this.app.stage.addChild(state);
     }
-    
-    /**
-     * Handle game update 
-     * @param {Number} dt PIXI timer deltaTime
-     */
-    update(dt: number): void {
+
+    update(): void {
         if (this.state) {
-            this.state.update(dt);
+            this.state.update();
         }
     }
     
@@ -94,11 +90,11 @@ export default class Game {
             if (!opts?.keepVisible) {
                 oldState.visible = false;
             }
-            oldState.exit(opts);
+            oldState.exit();
         }
         
         let newState = this.gameStates[stateName];
-        newState.enter(opts);
+        newState.enter();
         newState.visible = true;
         this.state = newState;
     }
