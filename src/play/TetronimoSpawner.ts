@@ -33,7 +33,8 @@ export default class TetronimoSpawner {
     }
     
     spawn(): Tetromino {
-        if(this.queue.length < 2) {
+        console.log(this.queue)
+        if(this.queue.length < 3) {
             this.refillQueue();
         }
         const shapeType = this.queue.pop();
