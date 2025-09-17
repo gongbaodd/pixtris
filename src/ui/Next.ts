@@ -7,6 +7,7 @@ export class Next extends LitElement {
     static styles = css`${unsafeCSS(daisyCss)}`;
     render() {
         return html`
+<p>Next</p>
 <div class="avatar">
   <div class="w-24 rounded">
     <img src="https://img.daisyui.com/images/profile/demo/batperson@192.webp" />
