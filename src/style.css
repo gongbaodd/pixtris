@@ -21,3 +21,7 @@ body {
 body .app {
     height: 640px;
 }
+
+.app .avatar canvas {
+    width: 100%;
+}
