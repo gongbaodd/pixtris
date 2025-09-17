@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
 
 html, body {
     margin: 0;
@@ -7,9 +10,14 @@ html, body {
 }
 
 body {
-    /* display: flex;
+    display: flex;
     justify-content: center;
     align-items: center;
 
-    background: #1E2C52; */
+    background: #1E2C52;
+    flex-flow: row-reverse;
+}
+
+body .app {
+    height: 640px;
 }

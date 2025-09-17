@@ -9,13 +9,16 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "daisyui": "^5.1.12",
     "typescript": "~5.8.3",
     "vite": "npm:rolldown-vite@latest"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.13",
     "es-toolkit": "^1.39.10",
     "lit": "^3.3.1",
     "nanostores": "^1.0.1",
-    "pixi.js": "^8.13.2"
+    "pixi.js": "^8.13.2",
+    "tailwindcss": "^4.1.13"
   }
 }
