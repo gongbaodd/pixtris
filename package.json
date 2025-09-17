@@ -15,6 +15,7 @@
   "dependencies": {
     "es-toolkit": "^1.39.10",
     "lit": "^3.3.1",
+    "nanostores": "^1.0.1",
     "pixi.js": "^8.13.2"
   }
 }
