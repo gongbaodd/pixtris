@@ -3,6 +3,7 @@ import "./style.css";
 import { Application, Assets } from 'pixi.js';
 import config from './config';
 import Game from "./Game";
+import "./ui/Next"
 
 setup();
 

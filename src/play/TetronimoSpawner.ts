@@ -1,8 +1,8 @@
 
-import { $queue } from '../store/queue';
+import { $current, $next, $queue } from '../store/queue';
 import Tetromino, { SHAPE_COLORS } from './Tetromino';
 
-type ShapeType = keyof typeof SHAPE_COLORS;
+export type ShapeType = keyof typeof SHAPE_COLORS;
 
 const shapeTypes = Object.keys(SHAPE_COLORS).join('') as string;
 
@@ -39,7 +39,11 @@ export default class TetronimoSpawner {
             this.refillQueue();
         }
         const shapeType = this.queue.pop();
+
+        $current.set(shapeType)
+        $next.set(this.queue[this.queue.length - 1])
         $queue.set([...this.queue])
+
         if (!shapeType) {
             throw new Error('No shapes available in queue');
         }

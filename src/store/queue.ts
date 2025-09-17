@@ -1,12 +1,8 @@
-import { atom, computed } from "nanostores"
+import { atom } from "nanostores"
+import type { ShapeType } from "../play/TetronimoSpawner"
 
 export const $queue = atom<string[]>([])
 
-export const $current = computed($queue, queue => {
-    return queue[queue.length - 1]
-})
+export const $current = atom<ShapeType | undefined>(undefined)
 
-export const $next = computed($queue, queue => {
-    return queue[queue.length - 2]
-})
-
+export const $next = atom<ShapeType | undefined>(undefined)
