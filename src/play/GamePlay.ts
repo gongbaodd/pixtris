@@ -5,6 +5,7 @@ import Renderer from './Renderer';
 import TetronimoSpawner from './TetronimoSpawner';
 import Tetromino from './Tetromino';
 import Game from '../Game';
+import { $score, $lines } from '../store/score';
 
 interface GamePlayOptions {
     restart?: boolean;
@@ -68,6 +69,10 @@ export default class GamePlay extends State {
 
             this.rowsCleared = 0;
             this.score = 0;
+            
+            // Reset score store
+            $score.set(0);
+            $lines.set(0);
 
             this.spawnTetromino();
         }
@@ -183,6 +188,28 @@ export default class GamePlay extends State {
      */
     updateScore(rows: number): void {
         this.rowsCleared += rows;
-        this.score += Math.pow(2, rows - 1);
+        
+        // New scoring system: 1 row = 100, 2 rows = 300, 3 rows = 500, 4 rows = 800
+        const points = this.getPointsForRows(rows);
+        this.score += points;
+        
+        // Update the score store
+        $score.set(this.score);
+        $lines.set(this.rowsCleared);
+    }
+    
+    /**
+     * Get points for clearing specific number of rows
+     * @param {Number} rows count of rows cleared
+     * @returns {Number} points awarded
+     */
+    private getPointsForRows(rows: number): number {
+        switch (rows) {
+            case 1: return 100;  // Single
+            case 2: return 300;  // Double
+            case 3: return 500;  // Triple
+            case 4: return 800;  // Tetris
+            default: return 0;
+        }
     }
 }

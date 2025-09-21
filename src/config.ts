@@ -47,7 +47,7 @@ export interface ControlsConfig {
 export const controls: ControlsConfig = {
     // controls key repeat speed
     repeatDelay: 2,
-    initialRepeatDelay: 100
+    initialRepeatDelay: 200
 }
 
 export interface Config {
