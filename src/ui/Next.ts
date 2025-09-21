@@ -4,6 +4,7 @@ import daisyCss from "../style.css?inline"
 import { Application } from "pixi.js";
 import type { ShapeType } from "../play/TetronimoSpawner";
 import { $next } from "../store/queue";
+import Tetromino from "../play/Tetromino";
 
 @customElement("next-piece")
 export class Next extends LitElement {
@@ -11,11 +12,21 @@ export class Next extends LitElement {
 
     app = new Application();
 
-    next: ShapeType | undefined = undefined
+    @state()
+    next?: ShapeType
 
     render() {
+        const next = this.next
+
+        if (!next) return ""
+
+        const tetromino = new Tetromino(next)
+
+        console.log(tetromino)
+
         return html`
 <p>Next</p>
+<p>${this.next}</p>
 <div class="avatar">
   <div class="w-24 rounded">
     <canvas width=24 height=24></canvas>
@@ -28,7 +39,9 @@ export class Next extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback();
-        this.unsubscribe = $next.subscribe(next => this.next = next)
+        this.unsubscribe = $next.subscribe(next => {
+            this.next = next
+        })
     }
 
     protected firstUpdated(_changedProperties: PropertyValues): void {
