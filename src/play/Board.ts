@@ -100,4 +100,44 @@ export default class Board {
             return null;
         }
     }
+
+    /**
+     * Compute the height of a single column measured from the top of the board
+     * down to the highest filled cell. Empty columns have height 0.
+     * @param {number} col column index
+     * @returns {number} height of the column
+     */
+    getColumnHeight(col: number): number {
+        if (col < 0 || col >= this.cols) return 0;
+        for (let row = 0; row < this.rows; ++row) {
+            if (this.grid[row][col]) {
+                return this.rows - row;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Get heights for all columns from left to right.
+     * @returns {number[]} array of column heights
+     */
+    getHeights(): number[] {
+        const heights: number[] = [];
+        for (let col = 0; col < this.cols; ++col) {
+            heights.push(this.getColumnHeight(col));
+        }
+        return heights;
+    }
+
+    /**
+     * Sum of all column heights.
+     * @returns {number} sum of heights
+     */
+    getHeightsSum(): number {
+        let sum = 0;
+        for (let col = 0; col < this.cols; ++col) {
+            sum += this.getColumnHeight(col);
+        }
+        return sum;
+    }
 }

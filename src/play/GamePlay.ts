@@ -78,6 +78,9 @@ export default class GamePlay extends State {
             $scoreAI.set(0);
             $linesAI.set(0);
             $turn.set(1);
+            if (this.board) {
+                console.log('Turn', 1, 'grid:', this.board.grid);
+            }
 
             this.spawnTetromino();
         }
@@ -139,6 +142,9 @@ export default class GamePlay extends State {
         // Advance turn after locking a piece (regardless of cleared rows)
         const nextTurn = $turn.get() + 1;
         $turn.set(nextTurn);
+        if (this.board) {
+            console.log('Turn', nextTurn, 'grid:', this.board.getHeightsSum());
+        }
     }
     
     /**
