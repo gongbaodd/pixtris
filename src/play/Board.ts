@@ -1,6 +1,7 @@
 
 type Position = [number, number];
 type BlockValue = string | false;
+import Tetromino from './Tetromino';
 
 /**
  * Tetris grid model
@@ -137,6 +138,55 @@ export default class Board {
         let sum = 0;
         for (let col = 0; col < this.cols; ++col) {
             sum += this.getColumnHeight(col);
+        }
+        return sum;
+    }
+
+    /**
+     * Compute the sum of column heights if a given tetromino were dropped
+     * from the specified starting column using its current rotation. This
+     * does not mutate the board or the tetromino.
+     * Returns Infinity if the tetromino cannot be placed at that column.
+     * @param {Tetromino} tetromino tetromino with current rotation
+     * @param {number} startCol target left-top column for the tetromino
+     * @returns {number} heights sum after virtual placement
+     */
+    getHeightsSumIfDropped(tetromino: Tetromino, startCol: number): number {
+        // Compute horizontal shift so that tetromino's top-left is at startCol
+        const colShift = startCol - tetromino.col;
+        let rowShift = 0;
+
+        // If initial placement is already invalid, bail out
+        if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
+            return Number.POSITIVE_INFINITY;
+        }
+
+        // Drop until the next step would collide
+        while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
+            ++rowShift;
+        }
+
+        // Compute virtual occupied cells for final placement
+        const placed = tetromino.absolutePos(rowShift, colShift);
+        const virtual = new Set<string>();
+        for (let i = 0; i < placed.length; ++i) {
+            virtual.add(placed[i][0] + ',' + placed[i][1]);
+        }
+
+        // Helper to compute a column height considering virtual blocks
+        const heightWithVirtual = (col: number): number => {
+            for (let row = 0; row < this.rows; ++row) {
+                if (this.grid[row][col] || virtual.has(row + ',' + col)) {
+                    return this.rows - row;
+                }
+            }
+            return 0;
+        };
+
+        // Sum heights across all columns
+        let sum = 0;
+        for (let col = 0; col < this.cols; ++col) {
+            sum += heightWithVirtual(col);
         }
         return sum;
     }
