@@ -1,5 +1,6 @@
 
 import { controls as controlsConfig } from '../config';
+import { $turn } from '../store/score';
 
 // handled keys - using key codes for compatibility
 const KEY_MAP = {
@@ -93,15 +94,25 @@ export default class Keyboard {
         this.down = this.keys[40];
         
         window.addEventListener('keydown', (evt) => {
+            // Ignore all inputs during AI turns (even turns)
+            if (($turn.get() % 2) === 0) return;
             // Use keyCode instead of key for numeric compatibility
-            let key = this.keys[evt.keyCode as unknown as KeyCode];
+            const key = this.keys[evt.keyCode as unknown as KeyCode];
+
+            if (key == this.down) return;
+
             if (key) {
                 key.onPress();
             }
         });
         window.addEventListener('keyup', (evt) => {
+            // Ignore all inputs during AI turns (even turns)
+            if (($turn.get() % 2) === 0) return;
             // Use keyCode instead of key for numeric compatibility
-            let key = this.keys[evt.keyCode as unknown as KeyCode];
+            const key = this.keys[evt.keyCode as unknown as KeyCode];
+
+            if (key == this.down) return;
+
             if (key) {
                 key.onRelease();
             }

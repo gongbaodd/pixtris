@@ -47,6 +47,8 @@ export class Next extends LitElement {
         console.log(tetromino)
 
         const isPlayerTurn = (this.turn % 2) === 1
+        const playerHighlight = isPlayerTurn ? 'bg-primary/10 ring-1 ring-primary rounded-md' : ''
+        const aiHighlight = !isPlayerTurn ? 'bg-secondary/10 ring-1 ring-secondary rounded-md' : ''
         return html`
 <div class="space-y-4">
   <div>
@@ -61,12 +63,12 @@ export class Next extends LitElement {
   </div>
   
   <div class="stats shadow bg-base-200 rounded-lg">
-    <div class="stat py-2 px-3">
+    <div class="stat py-2 px-3 ${playerHighlight}">
       <div class="stat-title text-xs">Player Score</div>
       <div class="stat-value text-lg ${isPlayerTurn ? 'text-primary' : ''}">${this.scorePlayer.toLocaleString()}</div>
       <div class="stat-desc text-xs">Lines: ${this.linesPlayer}</div>
     </div>
-    <div class="stat py-2 px-3">
+    <div class="stat py-2 px-3 ${aiHighlight}">
       <div class="stat-title text-xs">AI Score</div>
       <div class="stat-value text-lg ${!isPlayerTurn ? 'text-secondary' : ''}">${this.scoreAI.toLocaleString()}</div>
       <div class="stat-desc text-xs">Lines: ${this.linesAI}</div>
