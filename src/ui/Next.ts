@@ -4,7 +4,7 @@ import daisyCss from "../style.css?inline"
 import { Application } from "pixi.js";
 import type { ShapeType } from "../play/TetronimoSpawner";
 import { $next } from "../store/queue";
-import { $score, $lines } from "../store/score";
+import { $score, $lines, $scorePlayer, $linesPlayer, $scoreAI, $linesAI, $turn } from "../store/score";
 import Tetromino from "../play/Tetromino";
 
 @customElement("next-piece")
@@ -22,6 +22,21 @@ export class Next extends LitElement {
     @state()
     lines: number = 0
 
+    @state()
+    scorePlayer: number = 0
+
+    @state()
+    linesPlayer: number = 0
+
+    @state()
+    scoreAI: number = 0
+
+    @state()
+    linesAI: number = 0
+
+    @state()
+    turn: number = 1
+
     render() {
         const next = this.next
 
@@ -31,6 +46,7 @@ export class Next extends LitElement {
 
         console.log(tetromino)
 
+        const isPlayerTurn = (this.turn % 2) === 1
         return html`
 <div class="space-y-4">
   <div>
@@ -46,14 +62,17 @@ export class Next extends LitElement {
   
   <div class="stats shadow bg-base-200 rounded-lg">
     <div class="stat py-2 px-3">
-      <div class="stat-title text-xs">Score</div>
-      <div class="stat-value text-lg">${this.score.toLocaleString()}</div>
+      <div class="stat-title text-xs">Player Score</div>
+      <div class="stat-value text-lg ${isPlayerTurn ? 'text-primary' : ''}">${this.scorePlayer.toLocaleString()}</div>
+      <div class="stat-desc text-xs">Lines: ${this.linesPlayer}</div>
     </div>
     <div class="stat py-2 px-3">
-      <div class="stat-title text-xs">Lines</div>
-      <div class="stat-value text-lg">${this.lines}</div>
+      <div class="stat-title text-xs">AI Score</div>
+      <div class="stat-value text-lg ${!isPlayerTurn ? 'text-secondary' : ''}">${this.scoreAI.toLocaleString()}</div>
+      <div class="stat-desc text-xs">Lines: ${this.linesAI}</div>
     </div>
   </div>
+  <div class="text-xs text-base-content/70">Turn: ${this.turn} • ${isPlayerTurn ? 'Player' : 'AI'}</div>
   
   <div class="text-xs space-y-1">
     <div class="flex justify-between">
@@ -80,18 +99,24 @@ export class Next extends LitElement {
     unsubscribe?: () => void;
     unsubscribeScore?: () => void;
     unsubscribeLines?: () => void;
+    unsubscribeScorePlayer?: () => void;
+    unsubscribeLinesPlayer?: () => void;
+    unsubscribeScoreAI?: () => void;
+    unsubscribeLinesAI?: () => void;
+    unsubscribeTurn?: () => void;
 
     connectedCallback(): void {
         super.connectedCallback();
         this.unsubscribe = $next.subscribe(next => {
             this.next = next
         });
-        this.unsubscribeScore = $score.subscribe(score => {
-            this.score = score
-        });
-        this.unsubscribeLines = $lines.subscribe(lines => {
-            this.lines = lines
-        });
+        this.unsubscribeScore = $score.subscribe(score => { this.score = score });
+        this.unsubscribeLines = $lines.subscribe(lines => { this.lines = lines });
+        this.unsubscribeScorePlayer = $scorePlayer.subscribe(score => { this.scorePlayer = score });
+        this.unsubscribeLinesPlayer = $linesPlayer.subscribe(lines => { this.linesPlayer = lines });
+        this.unsubscribeScoreAI = $scoreAI.subscribe(score => { this.scoreAI = score });
+        this.unsubscribeLinesAI = $linesAI.subscribe(lines => { this.linesAI = lines });
+        this.unsubscribeTurn = $turn.subscribe(turn => { this.turn = turn });
     }
 
     protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -112,5 +137,10 @@ export class Next extends LitElement {
         this.unsubscribe?.();
         this.unsubscribeScore?.();
         this.unsubscribeLines?.();
+        this.unsubscribeScorePlayer?.();
+        this.unsubscribeLinesPlayer?.();
+        this.unsubscribeScoreAI?.();
+        this.unsubscribeLinesAI?.();
+        this.unsubscribeTurn?.();
     }
 }

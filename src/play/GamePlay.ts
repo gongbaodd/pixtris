@@ -5,7 +5,7 @@ import Renderer from './Renderer';
 import TetronimoSpawner from './TetronimoSpawner';
 import Tetromino from './Tetromino';
 import Game from '../Game';
-import { $score, $lines } from '../store/score';
+import { $score, $lines, $scorePlayer, $linesPlayer, $scoreAI, $linesAI, $turn } from '../store/score';
 
 interface GamePlayOptions {
     restart?: boolean;
@@ -73,6 +73,11 @@ export default class GamePlay extends State {
             // Reset score store
             $score.set(0);
             $lines.set(0);
+            $scorePlayer.set(0);
+            $linesPlayer.set(0);
+            $scoreAI.set(0);
+            $linesAI.set(0);
+            $turn.set(1);
 
             this.spawnTetromino();
         }
@@ -130,6 +135,10 @@ export default class GamePlay extends State {
             this.updateScore(fullRows.length);
             this.board.cleanRows(fullRows);
         }
+
+        // Advance turn after locking a piece (regardless of cleared rows)
+        const nextTurn = $turn.get() + 1;
+        $turn.set(nextTurn);
     }
     
     /**
@@ -187,13 +196,29 @@ export default class GamePlay extends State {
      * @param {Number} rows count of rows cleared in one move
      */
     updateScore(rows: number): void {
-        this.rowsCleared += rows;
-        
-        // New scoring system: 1 row = 100, 2 rows = 300, 3 rows = 500, 4 rows = 800
+        // Determine actor by current turn before it advances
+        const turn = $turn.get();
+        const isPlayerTurn = (turn % 2) === 1;
+
+        // Points for this clear
         const points = this.getPointsForRows(rows);
+
+        // Update per-actor stores
+        if (isPlayerTurn) {
+            const newPlayerScore = $scorePlayer.get() + points;
+            const newPlayerLines = $linesPlayer.get() + rows;
+            $scorePlayer.set(newPlayerScore);
+            $linesPlayer.set(newPlayerLines);
+        } else {
+            const newAIScore = $scoreAI.get() + points;
+            const newAILines = $linesAI.get() + rows;
+            $scoreAI.set(newAIScore);
+            $linesAI.set(newAILines);
+        }
+
+        // Update aggregated totals maintained by this state for menus and legacy UI
+        this.rowsCleared += rows;
         this.score += points;
-        
-        // Update the score store
         $score.set(this.score);
         $lines.set(this.rowsCleared);
     }
