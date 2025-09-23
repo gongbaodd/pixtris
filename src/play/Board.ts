@@ -283,4 +283,57 @@ export default class Board {
 	        }
 	        return holes;
 	    }
+		
+		/**
+		 * Compute the sum of absolute differences between adjacent column heights
+		 * if the given tetromino were dropped from the specified starting column
+		 * using its current rotation. This does not mutate the board or the tetromino.
+		 * Returns -1 if the tetromino cannot be placed at that column.
+		 * The value computed is: sum(|h0 - h1| + |h1 - h2| + ... + |h(n-2) - h(n-1)|)
+		 * where hX are the column heights after the virtual placement.
+		 * @param {Tetromino} tetromino tetromino with current rotation
+		 * @param {number} startCol target left-top column for the tetromino
+		 * @returns {number} sum of adjacent column height differences
+		 */
+		getAdjacentHeightDiffSumIfDropped(tetromino: Tetromino, startCol: number): number {
+			const colShift = startCol - tetromino.col;
+			let rowShift = 0;
+
+			// If initial placement is already invalid, bail out
+			if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
+				return -1;
+			}
+
+			// Drop until the next step would collide
+			while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
+				++rowShift;
+			}
+
+			// Compute virtual occupied cells for final placement
+			const placed = tetromino.absolutePos(rowShift, colShift);
+			const virtual = new Set<string>();
+			for (let i = 0; i < placed.length; ++i) {
+				virtual.add(placed[i][0] + ',' + placed[i][1]);
+			}
+
+			// Helper to compute a column height considering virtual blocks
+			const heightWithVirtual = (col: number): number => {
+				for (let row = 0; row < this.rows; ++row) {
+					if (this.grid[row][col] || virtual.has(row + ',' + col)) {
+						return this.rows - row;
+					}
+				}
+				return 0;
+			};
+
+			// Compute sum of absolute differences between adjacent column heights
+			let sum = 0;
+			let prevHeight = heightWithVirtual(0);
+			for (let col = 1; col < this.cols; ++col) {
+				const h = heightWithVirtual(col);
+				sum += Math.abs(prevHeight - h);
+				prevHeight = h;
+			}
+			return sum;
+		}
 }
