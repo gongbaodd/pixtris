@@ -6,6 +6,7 @@ import TetronimoSpawner from './TetronimoSpawner';
 import Tetromino from './Tetromino';
 import Game from '../Game';
 import { $score, $lines, $scorePlayer, $linesPlayer, $scoreAI, $linesAI, $turn } from '../store/score';
+import { $next } from '../store/queue';
 
 interface GamePlayOptions {
     restart?: boolean;
@@ -142,8 +143,13 @@ export default class GamePlay extends State {
         // Advance turn after locking a piece (regardless of cleared rows)
         const nextTurn = $turn.get() + 1;
         $turn.set(nextTurn);
+
         if (this.board) {
             console.log('Turn', nextTurn, 'grid:', this.board.getHeightsSum());
+            const nextTetromino = new Tetromino($next.get()!);
+            console.log('Next Tetromino', nextTetromino);
+            const nextClearedRowstSum = this.board.getClearedRowsCountIfDropped(nextTetromino, 0);
+            console.log('Next Tetromino Height Sum', nextClearedRowstSum);
         }
     }
     

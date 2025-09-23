@@ -190,4 +190,49 @@ export default class Board {
         }
         return sum;
     }
+
+    /**
+     * Compute how many rows would be cleared if the given tetromino were
+     * dropped from the specified starting column using its current rotation.
+     * This does not mutate the board or the tetromino.
+     * Returns -1 if the tetromino cannot be placed at that column.
+     * @param {Tetromino} tetromino tetromino with current rotation
+     * @param {number} startCol target left-top column for the tetromino
+     * @returns {number} number of rows that would be cleared
+     */
+    getClearedRowsCountIfDropped(tetromino: Tetromino, startCol: number): number {
+        const colShift = startCol - tetromino.col;
+        let rowShift = 0;
+
+        // If initial placement is already invalid, bail out
+        if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
+            return -1;
+        }
+
+        // Drop until the next step would collide
+        while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
+            ++rowShift;
+        }
+
+        // Compute virtual occupied cells for final placement
+        const placed = tetromino.absolutePos(rowShift, colShift);
+        const virtual = new Set<string>();
+        for (let i = 0; i < placed.length; ++i) {
+            virtual.add(placed[i][0] + ',' + placed[i][1]);
+        }
+
+        // Count rows that become full considering virtual cells
+        let cleared = 0;
+        for (let row = 0; row < this.rows; ++row) {
+            let full = true;
+            for (let col = 0; col < this.cols; ++col) {
+                if (!this.grid[row][col] && !virtual.has(row + ',' + col)) {
+                    full = false;
+                    break;
+                }
+            }
+            if (full) ++cleared;
+        }
+        return cleared;
+    }
 }

@@ -42,9 +42,7 @@ export class Next extends LitElement {
 
         if (!next) return ""
 
-        const tetromino = new Tetromino(next)
-
-        console.log(tetromino)
+        // const tetromino = new Tetromino(next)
 
         const isPlayerTurn = (this.turn % 2) === 1
         const playerHighlight = isPlayerTurn ? 'bg-primary/10 ring-1 ring-primary rounded-md' : ''
