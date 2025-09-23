@@ -235,4 +235,52 @@ export default class Board {
         }
         return cleared;
     }
+
+	    /**
+	     * Compute how many holes would exist if the given tetromino were dropped
+	     * from the specified starting column using its current rotation. A hole is
+	     * an empty cell that has at least one filled cell above it in the same column.
+	     * This does not mutate the board or the tetromino.
+	     * Returns -1 if the tetromino cannot be placed at that column.
+	     * @param {Tetromino} tetromino tetromino with current rotation
+	     * @param {number} startCol target left-top column for the tetromino
+	     * @returns {number} number of holes after virtual placement
+	     */
+	    getHolesCountIfDropped(tetromino: Tetromino, startCol: number): number {
+	        const colShift = startCol - tetromino.col;
+	        let rowShift = 0;
+
+	        // If initial placement is already invalid, bail out
+	        if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
+	            return -1;
+	        }
+
+	        // Drop until the next step would collide
+	        while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
+	            ++rowShift;
+	        }
+
+	        // Compute virtual occupied cells for final placement
+	        const placed = tetromino.absolutePos(rowShift, colShift);
+	        const virtual = new Set<string>();
+	        for (let i = 0; i < placed.length; ++i) {
+	            virtual.add(placed[i][0] + ',' + placed[i][1]);
+	        }
+
+	        // Count holes considering virtual cells (without actually clearing rows)
+	        let holes = 0;
+	        for (let col = 0; col < this.cols; ++col) {
+	            let seenFilledAbove = false;
+	            for (let row = 0; row < this.rows; ++row) {
+	                const occupied = !!this.grid[row][col] || virtual.has(row + ',' + col);
+	                if (occupied) {
+	                    seenFilledAbove = true;
+	                } else if (seenFilledAbove) {
+	                    // Empty cell with at least one filled cell above in this column
+	                    ++holes;
+	                }
+	            }
+	        }
+	        return holes;
+	    }
 }
