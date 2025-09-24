@@ -153,6 +153,8 @@ export default class GamePlay extends State {
             console.log("Opponent Tetromino", opponentTetromino);
             const nextClearedRowstSum = this.board.getPlacementEvaluationMap([nextTetromino, opponentTetromino]);
             console.log('Sum', nextClearedRowstSum);
+            const bestMove = this.board.findBestMove([nextTetromino, opponentTetromino]);
+            console.log('Best Move', bestMove);
         }
     }
     

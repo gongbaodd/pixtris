@@ -350,4 +350,57 @@ export default class Board {
 
         return buildBranch(0, []);
     }
+
+	/**
+	 * Find the best move route using a minimax strategy over the placement evaluation tree.
+	 * Strategy for two pieces (generalizes to N):
+	 *  - For each of our possible moves (col, rot), assume the opponent picks the
+	 *    child that maximizes the score.
+	 *  - We then pick the move that minimizes that opponent-best score.
+	 *
+	 * Concretely for depth=2 as in the example:
+	 *  - Compute max(A1, A2) and max(B1, B2), then choose the smaller of those two.
+	 *
+	 * Returns the chosen route as a list of [startColumn, rotation] for each depth.
+	 */
+	findBestMove(tetrominoes: Tetromino[]): [number, number][] {
+		const root: Branch = this.getPlacementEvaluationMap(tetrominoes);
+
+		type RouteResult = { score: number, route: [number, number][] };
+
+		const isNumber = (v: number | Branch): v is number => typeof v === 'number';
+
+		const minimax = (node: Branch, isMinimizing: boolean): RouteResult => {
+			let best: RouteResult | null = null;
+			for (const [col, rotMap] of node) {
+				for (const [rot, child] of rotMap) {
+					let result: RouteResult;
+					if (isNumber(child)) {
+						result = { score: child, route: [] };
+					} else {
+						result = minimax(child, !isMinimizing);
+					}
+					// Prepend current move to child route
+					const candidate: RouteResult = {
+						score: result.score,
+						route: [[col, rot] as [number, number]].concat(result.route)
+					};
+
+					if (best === null) {
+						best = candidate;
+					} else if (isMinimizing) {
+						if (candidate.score < best.score) best = candidate;
+					} else {
+						if (candidate.score > best.score) best = candidate;
+					}
+				}
+			}
+			// Fallback if no children (should not happen): neutral score
+			return best ?? { score: Number.NEGATIVE_INFINITY, route: [] };
+		};
+
+        const result = minimax(root, true);
+        console.log('Result', result);
+		return result.route;
+	}
 }
