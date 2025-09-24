@@ -148,7 +148,7 @@ export default class GamePlay extends State {
             console.log('Turn', nextTurn, 'grid:', this.board.getHeightsSum());
             const nextTetromino = new Tetromino($next.get()!);
             console.log('Next Tetromino', nextTetromino);
-            const nextClearedRowstSum = this.board.getHolesCountIfDropped(nextTetromino, 0);
+            const nextClearedRowstSum = this.board.getPlacementEvaluationMap(nextTetromino);
             console.log('Next Tetromino Height Sum', nextClearedRowstSum);
         }
     }

@@ -336,4 +336,49 @@ export default class Board {
 			}
 			return sum;
 		}
+
+	/**
+	 * Build an evaluation map for all columns and rotations for a given tetromino.
+	 * The returned Map has keys as column indices. Each value is a Map whose keys
+	 * are rotation indices (0..3) and values are the evaluation score computed as:
+	 *   -0.510066 * getHeightsSumIfDropped
+	 * +  0.760666 * getClearedRowsCountIfDropped
+	 * + -0.35663  * getHolesCountIfDropped
+	 * + -0.184483 * getAdjacentHeightDiffSumIfDropped
+	 * Invalid placements are scored as Number.NEGATIVE_INFINITY.
+	 *
+	 * This method does not mutate the provided tetromino or the board.
+	 */
+	getPlacementEvaluationMap(tetromino: Tetromino): Map<number, Map<number, number>> {
+		const result = new Map<number, Map<number, number>>();
+		for (let col = 0; col < this.cols; ++col) {
+			const rotationMap = new Map<number, number>();
+			for (let rot = 0; rot < 4; ++rot) {
+				// Create a fresh tetromino with desired rotation, positioned at (0,0)
+				const t = new Tetromino(tetromino.shapeType);
+				t.row = 0;
+				t.col = 0;
+				for (let r = 0; r < rot; ++r) t.rotate();
+
+				const heightsSum = this.getHeightsSumIfDropped(t, col);
+				const cleared = this.getClearedRowsCountIfDropped(t, col);
+				const holes = this.getHolesCountIfDropped(t, col);
+				const adjDiff = this.getAdjacentHeightDiffSumIfDropped(t, col);
+
+				let score: number;
+				if (!isFinite(heightsSum) || cleared < 0 || holes < 0 || adjDiff < 0) {
+					score = Number.NEGATIVE_INFINITY;
+				} else {
+					score = (-0.510066 * heightsSum)
+						+ (0.760666 * cleared)
+						+ (-0.35663 * holes)
+						+ (-0.184483 * adjDiff);
+				}
+
+				rotationMap.set(rot, score);
+			}
+			result.set(col, rotationMap);
+		}
+		return result;
+	}
 }
