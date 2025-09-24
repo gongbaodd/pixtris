@@ -2,11 +2,11 @@ import config from '../config';
 import State from '../utils/State';
 import Board from './Board';
 import Renderer from './Renderer';
-import TetronimoSpawner from './TetronimoSpawner';
+import TetronimoSpawner, { type ShapeType } from './TetronimoSpawner';
 import Tetromino from './Tetromino';
 import Game from '../Game';
 import { $score, $lines, $scorePlayer, $linesPlayer, $scoreAI, $linesAI, $turn } from '../store/score';
-import { $next } from '../store/queue';
+import { $next, $queue } from '../store/queue';
 
 interface GamePlayOptions {
     restart?: boolean;
@@ -147,9 +147,12 @@ export default class GamePlay extends State {
         if (this.board) {
             console.log('Turn', nextTurn, 'grid:', this.board.getHeightsSum());
             const nextTetromino = new Tetromino($next.get()!);
+            const queue = $queue.get();
+            const opponentTetromino = new Tetromino(queue[queue.length - 2] as unknown as ShapeType)
             console.log('Next Tetromino', nextTetromino);
-            const nextClearedRowstSum = this.board.getPlacementEvaluationMap(nextTetromino);
-            console.log('Next Tetromino Height Sum', nextClearedRowstSum);
+            console.log("Opponent Tetromino", opponentTetromino);
+            const nextClearedRowstSum = this.board.getPlacementEvaluationMap([nextTetromino, opponentTetromino]);
+            console.log('Sum', nextClearedRowstSum);
         }
     }
     

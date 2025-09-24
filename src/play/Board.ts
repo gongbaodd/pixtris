@@ -1,6 +1,7 @@
 
 type Position = [number, number];
 type BlockValue = string | false;
+type Branch = Map<number, Map<number, number | Branch>>;
 import Tetromino from './Tetromino';
 
 /**
@@ -143,37 +144,53 @@ export default class Board {
     }
 
     /**
-     * Compute the sum of column heights if a given tetromino were dropped
-     * from the specified starting column using its current rotation. This
-     * does not mutate the board or the tetromino.
-     * Returns Infinity if the tetromino cannot be placed at that column.
-     * @param {Tetromino} tetromino tetromino with current rotation
-     * @param {number} startCol target left-top column for the tetromino
-     * @returns {number} heights sum after virtual placement
+     * Place one or more tetromino specs virtually and return the set of occupied cells.
+     * If any placement is invalid, returns { invalid: true }.
      */
-    getHeightsSumIfDropped(tetromino: Tetromino, startCol: number): number {
-        // Compute horizontal shift so that tetromino's top-left is at startCol
-        const colShift = startCol - tetromino.col;
-        let rowShift = 0;
-
-        // If initial placement is already invalid, bail out
-        if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
-            return Number.POSITIVE_INFINITY;
-        }
-
-        // Drop until the next step would collide
-        while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
-            ++rowShift;
-        }
-
-        // Compute virtual occupied cells for final placement
-        const placed = tetromino.absolutePos(rowShift, colShift);
+    private computeVirtualPlacement(specs: { tetromino: Tetromino, startCol: number }[]): { virtual: Set<string>, invalid: boolean } {
         const virtual = new Set<string>();
-        for (let i = 0; i < placed.length; ++i) {
-            virtual.add(placed[i][0] + ',' + placed[i][1]);
-        }
+        for (let s = 0; s < specs.length; ++s) {
+            const { tetromino, startCol } = specs[s];
+            const colShift = startCol - tetromino.col;
+            let rowShift = 0;
 
-        // Helper to compute a column height considering virtual blocks
+            // Collision check against base grid and current virtual cells
+            const collidesWithVirtual = (positions: Position[]): boolean => {
+                for (let i = 0; i < positions.length; ++i) {
+                    const r = positions[i][0];
+                    const c = positions[i][1];
+                    if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return true;
+                    if (this.grid[r][c]) return true;
+                    if (virtual.has(r + ',' + c)) return true;
+                }
+                return false;
+            };
+
+            if (collidesWithVirtual(tetromino.absolutePos(rowShift, colShift))) {
+                return { virtual, invalid: true };
+            }
+
+            while (!collidesWithVirtual(tetromino.absolutePos(rowShift + 1, colShift))) {
+                ++rowShift;
+            }
+
+            const placed = tetromino.absolutePos(rowShift, colShift);
+            for (let i = 0; i < placed.length; ++i) {
+                virtual.add(placed[i][0] + ',' + placed[i][1]);
+            }
+        }
+        return { virtual, invalid: false };
+    }
+
+    /**
+     * Compute the sum of column heights if the given tetromino specs were dropped sequentially.
+     * Returns Infinity if any placement is invalid.
+     * @param specs Array of {tetromino, startCol}
+     */
+    getHeightsSumIfDropped(specs: { tetromino: Tetromino, startCol: number }[]): number {
+        const { virtual, invalid } = this.computeVirtualPlacement(specs);
+        if (invalid) return Number.POSITIVE_INFINITY;
+
         const heightWithVirtual = (col: number): number => {
             for (let row = 0; row < this.rows; ++row) {
                 if (this.grid[row][col] || virtual.has(row + ',' + col)) {
@@ -183,7 +200,6 @@ export default class Board {
             return 0;
         };
 
-        // Sum heights across all columns
         let sum = 0;
         for (let col = 0; col < this.cols; ++col) {
             sum += heightWithVirtual(col);
@@ -200,28 +216,10 @@ export default class Board {
      * @param {number} startCol target left-top column for the tetromino
      * @returns {number} number of rows that would be cleared
      */
-    getClearedRowsCountIfDropped(tetromino: Tetromino, startCol: number): number {
-        const colShift = startCol - tetromino.col;
-        let rowShift = 0;
+    getClearedRowsCountIfDropped(specs: { tetromino: Tetromino, startCol: number }[]): number {
+        const { virtual, invalid } = this.computeVirtualPlacement(specs);
+        if (invalid) return -1;
 
-        // If initial placement is already invalid, bail out
-        if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
-            return -1;
-        }
-
-        // Drop until the next step would collide
-        while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
-            ++rowShift;
-        }
-
-        // Compute virtual occupied cells for final placement
-        const placed = tetromino.absolutePos(rowShift, colShift);
-        const virtual = new Set<string>();
-        for (let i = 0; i < placed.length; ++i) {
-            virtual.add(placed[i][0] + ',' + placed[i][1]);
-        }
-
-        // Count rows that become full considering virtual cells
         let cleared = 0;
         for (let row = 0; row < this.rows; ++row) {
             let full = true;
@@ -246,28 +244,10 @@ export default class Board {
 	     * @param {number} startCol target left-top column for the tetromino
 	     * @returns {number} number of holes after virtual placement
 	     */
-	    getHolesCountIfDropped(tetromino: Tetromino, startCol: number): number {
-	        const colShift = startCol - tetromino.col;
-	        let rowShift = 0;
+	    getHolesCountIfDropped(specs: { tetromino: Tetromino, startCol: number }[]): number {
+	        const { virtual, invalid } = this.computeVirtualPlacement(specs);
+	        if (invalid) return -1;
 
-	        // If initial placement is already invalid, bail out
-	        if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
-	            return -1;
-	        }
-
-	        // Drop until the next step would collide
-	        while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
-	            ++rowShift;
-	        }
-
-	        // Compute virtual occupied cells for final placement
-	        const placed = tetromino.absolutePos(rowShift, colShift);
-	        const virtual = new Set<string>();
-	        for (let i = 0; i < placed.length; ++i) {
-	            virtual.add(placed[i][0] + ',' + placed[i][1]);
-	        }
-
-	        // Count holes considering virtual cells (without actually clearing rows)
 	        let holes = 0;
 	        for (let col = 0; col < this.cols; ++col) {
 	            let seenFilledAbove = false;
@@ -276,7 +256,6 @@ export default class Board {
 	                if (occupied) {
 	                    seenFilledAbove = true;
 	                } else if (seenFilledAbove) {
-	                    // Empty cell with at least one filled cell above in this column
 	                    ++holes;
 	                }
 	            }
@@ -295,28 +274,10 @@ export default class Board {
 		 * @param {number} startCol target left-top column for the tetromino
 		 * @returns {number} sum of adjacent column height differences
 		 */
-		getAdjacentHeightDiffSumIfDropped(tetromino: Tetromino, startCol: number): number {
-			const colShift = startCol - tetromino.col;
-			let rowShift = 0;
+		getAdjacentHeightDiffSumIfDropped(specs: { tetromino: Tetromino, startCol: number }[]): number {
+			const { virtual, invalid } = this.computeVirtualPlacement(specs);
+			if (invalid) return -1;
 
-			// If initial placement is already invalid, bail out
-			if (this.collides(tetromino.absolutePos(rowShift, colShift))) {
-				return -1;
-			}
-
-			// Drop until the next step would collide
-			while (!this.collides(tetromino.absolutePos(rowShift + 1, colShift))) {
-				++rowShift;
-			}
-
-			// Compute virtual occupied cells for final placement
-			const placed = tetromino.absolutePos(rowShift, colShift);
-			const virtual = new Set<string>();
-			for (let i = 0; i < placed.length; ++i) {
-				virtual.add(placed[i][0] + ',' + placed[i][1]);
-			}
-
-			// Helper to compute a column height considering virtual blocks
 			const heightWithVirtual = (col: number): number => {
 				for (let row = 0; row < this.rows; ++row) {
 					if (this.grid[row][col] || virtual.has(row + ',' + col)) {
@@ -326,7 +287,6 @@ export default class Board {
 				return 0;
 			};
 
-			// Compute sum of absolute differences between adjacent column heights
 			let sum = 0;
 			let prevHeight = heightWithVirtual(0);
 			for (let col = 1; col < this.cols; ++col) {
@@ -348,37 +308,46 @@ export default class Board {
 	 * Invalid placements are scored as Number.NEGATIVE_INFINITY.
 	 *
 	 * This method does not mutate the provided tetromino or the board.
-	 */
-	getPlacementEvaluationMap(tetromino: Tetromino): Map<number, Map<number, number>> {
-		const result = new Map<number, Map<number, number>>();
-		for (let col = 0; col < this.cols; ++col) {
-			const rotationMap = new Map<number, number>();
-			for (let rot = 0; rot < 4; ++rot) {
-				// Create a fresh tetromino with desired rotation, positioned at (0,0)
-				const t = new Tetromino(tetromino.shapeType);
-				t.row = 0;
-				t.col = 0;
-				for (let r = 0; r < rot; ++r) t.rotate();
+    */
+    getPlacementEvaluationMap(tetrominoes: Tetromino[]): Branch {
+        const evaluateSpecs = (specs: { tetromino: Tetromino, startCol: number }[]): number => {
+            const heightsSum = this.getHeightsSumIfDropped(specs);
+            const cleared = this.getClearedRowsCountIfDropped(specs);
+            const holes = this.getHolesCountIfDropped(specs);
+            const adjDiff = this.getAdjacentHeightDiffSumIfDropped(specs);
 
-				const heightsSum = this.getHeightsSumIfDropped(t, col);
-				const cleared = this.getClearedRowsCountIfDropped(t, col);
-				const holes = this.getHolesCountIfDropped(t, col);
-				const adjDiff = this.getAdjacentHeightDiffSumIfDropped(t, col);
+            if (!isFinite(heightsSum) || cleared < 0 || holes < 0 || adjDiff < 0) {
+                return Number.NEGATIVE_INFINITY;
+            }
+            return (-0.510066 * heightsSum)
+                + (0.760666 * cleared)
+                + (-0.35663 * holes)
+                + (-0.184483 * adjDiff);
+        };
 
-				let score: number;
-				if (!isFinite(heightsSum) || cleared < 0 || holes < 0 || adjDiff < 0) {
-					score = Number.NEGATIVE_INFINITY;
-				} else {
-					score = (-0.510066 * heightsSum)
-						+ (0.760666 * cleared)
-						+ (-0.35663 * holes)
-						+ (-0.184483 * adjDiff);
-				}
+        const buildBranch = (index: number, placed: { tetromino: Tetromino, startCol: number }[]): Branch => {
+            const branch: Branch = new Map<number, Map<number, number | Branch>>();
+            for (let col = 0; col < this.cols; ++col) {
+                const rotationMap = new Map<number, number | Branch>();
+                for (let rot = 0; rot < 4; ++rot) {
+                    const base = tetrominoes[index];
+                    const t = new Tetromino(base.shapeType);
+                    t.row = 0;
+                    t.col = 0;
+                    for (let r = 0; r < rot; ++r) t.rotate();
 
-				rotationMap.set(rot, score);
-			}
-			result.set(col, rotationMap);
-		}
-		return result;
-	}
+                    const nextPlaced = placed.concat({ tetromino: t, startCol: col });
+                    if (index === tetrominoes.length - 1) {
+                        rotationMap.set(rot, evaluateSpecs(nextPlaced));
+                    } else {
+                        rotationMap.set(rot, buildBranch(index + 1, nextPlaced));
+                    }
+                }
+                branch.set(col, rotationMap);
+            }
+            return branch;
+        };
+
+        return buildBranch(0, []);
+    }
 }
