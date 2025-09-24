@@ -5,7 +5,6 @@ import { Application } from "pixi.js";
 import type { ShapeType } from "../play/TetronimoSpawner";
 import { $next } from "../store/queue";
 import { $score, $lines, $scorePlayer, $linesPlayer, $scoreAI, $linesAI, $turn } from "../store/score";
-import Tetromino from "../play/Tetromino";
 
 @customElement("next-piece")
 export class Next extends LitElement {
