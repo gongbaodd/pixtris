@@ -7,6 +7,7 @@ import Tetromino from './Tetromino';
 import Game from '../Game';
 import { $score, $lines, $scorePlayer, $linesPlayer, $scoreAI, $linesAI, $turn } from '../store/score';
 import { $next, $queue } from '../store/queue';
+import { $bestMove } from '../store/ai';
 
 interface GamePlayOptions {
     restart?: boolean;
@@ -120,6 +121,37 @@ export default class GamePlay extends State {
         this.tetromino = this.spawner.spawn();
         this.tetromino.row = 0;
         this.tetromino.col = this.board.cols / 2 - 2;
+
+        // If it's AI's turn, move tetromino according to stored best move
+        const turn = $turn.get();
+        if ((turn % 2) === 0) {
+            const move = $bestMove.get();
+            if (move) {
+                const [targetCol, rotationTimes] = move;
+                // Apply rotations first (up to 4, safeguarded)
+                const rotationsToApply = Math.max(0, Math.min(4, rotationTimes));
+                for (let i = 0; i < rotationsToApply; i++) {
+                    // Attempt rotation with simple wall-kick like player logic
+                    if (!this.board.collides(this.tetromino.absolutePos(0, 0, true))) {
+                        this.tetromino.rotate();
+                    } else if (!this.board.collides(this.tetromino.absolutePos(0, -1, true))) {
+                        --this.tetromino.col;
+                        this.tetromino.rotate();
+                    } else if (!this.board.collides(this.tetromino.absolutePos(0, 1, true))) {
+                        ++this.tetromino.col;
+                        this.tetromino.rotate();
+                    }
+                }
+
+                // Move horizontally towards targetCol while avoiding collisions
+                while (this.tetromino.col > targetCol && !this.board.collides(this.tetromino.absolutePos(0, -1))) {
+                    --this.tetromino.col;
+                }
+                while (this.tetromino.col < targetCol && !this.board.collides(this.tetromino.absolutePos(0, 1))) {
+                    ++this.tetromino.col;
+                }
+            }
+        }
         
         if (this.board.collides(this.tetromino.absolutePos(0, 0))) {
             this.lockTetromino();
@@ -153,11 +185,13 @@ export default class GamePlay extends State {
             console.log("Opponent Tetromino", opponentTetromino);
             const nextClearedRowstSum = this.board.getPlacementEvaluationMap([nextTetromino, opponentTetromino]);
             console.log('Sum', nextClearedRowstSum);
-            const bestMove = this.board.findBestMove([nextTetromino, opponentTetromino]);
-            console.log('Best Move', bestMove);
+            const bestMoveRoute = this.board.findBestMove([nextTetromino, opponentTetromino]);
+            console.log('Best Move', bestMoveRoute);
+            // Persist only the first hop: [startCol, rotationTimes]
+            $bestMove.set(bestMoveRoute[0] ?? null);
         }
     }
-    
+
     /**
      * handle game ending
      */
