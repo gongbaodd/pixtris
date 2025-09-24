@@ -386,6 +386,11 @@ export default class Board {
 						route: [[col, rot] as [number, number]].concat(result.route)
 					};
 
+					// Ignore invalid placements scored as -Infinity
+					if (candidate.score === Number.NEGATIVE_INFINITY) {
+						continue;
+					}
+
 					if (best === null) {
 						best = candidate;
 					} else if (isMinimizing) {
@@ -399,7 +404,7 @@ export default class Board {
 			return best ?? { score: Number.NEGATIVE_INFINITY, route: [] };
 		};
 
-        const result = minimax(root, true);
+        const result = minimax(root, false);
         console.log('Result', result);
 		return result.route;
 	}
